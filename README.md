@@ -1,17 +1,26 @@
 # MENUOF Starter Project
 
-A white-label Next.js starter template for building custom restaurant websites that connect to the MENUOF platform. Display your menu, manage cart functionality, and redirect customers to MENUOF for checkout.
+A white-label Next.js starter template showcasing reusable components for building custom restaurant websites that connect to the MENUOF platform. This project is designed to be used as a reference for AI agents to understand and reuse components when creating custom designs.
+
+## Purpose
+
+This starter project provides:
+- **Reusable Components**: Pre-built React components for menu display, cart management, and product selection
+- **Working Example**: A fully functional example menu page at `/example_menu_page`
+- **API Integration**: Ready-to-use RTK Query hooks for the MENUOF API
+- **Type Definitions**: Comprehensive TypeScript types for all data structures
 
 ## Features
 
 - **Menu Display**: Beautifully display your restaurant's menu with categories, products, and variants
 - **Cart Management**: Full shopping cart functionality with add, update, and remove items
+- **Lazy Cart Creation**: Cart is only created when user adds first item (optimized API usage)
 - **Variant Selection**: Support for product variants (sizes, toppings, extras)
 - **Responsive Design**: Mobile-first design that works on all devices
 - **Dark Mode**: Built-in dark mode support
 - **Multi-language**: Support for multiple languages via localized content
 - **Type-Safe**: Full TypeScript support with comprehensive type definitions
-- **RTK Query**: Efficient data fetching with automatic caching
+- **RTK Query**: Efficient data fetching with automatic caching and optimized refetch policies
 
 ## Quick Start
 
@@ -51,7 +60,9 @@ A white-label Next.js starter template for building custom restaurant websites t
 
 5. **Open your browser**
    
-   Navigate to `http://localhost:3000` to see your menu!
+   Navigate to `http://localhost:3000` to see the landing page with available examples.
+   
+   Click on "View Example Menu Page" or go directly to `http://localhost:3000/example_menu_page` to see the full menu example.
 
 ## Configuration
 
@@ -76,31 +87,41 @@ Your store slug is the unique identifier for your restaurant on MENUOF. You can 
 ```
 src/
 ├── app/
-│   ├── layout.tsx      # Root layout with providers
-│   ├── page.tsx        # Main menu page
-│   ├── providers.tsx   # Redux + Cart providers
-│   └── globals.css     # Global styles
+│   ├── layout.tsx              # Root layout with providers
+│   ├── page.tsx                # Landing page with component overview
+│   ├── example_menu_page/
+│   │   └── page.tsx            # Full working menu example
+│   ├── providers.tsx           # Redux + Cart providers
+│   └── globals.css             # Global styles
 ├── components/
-│   ├── CartButton.tsx      # Floating/inline cart button
-│   ├── CartDrawer.tsx      # Slide-out cart panel
-│   ├── CategoryNav.tsx     # Category navigation
-│   ├── Header.tsx          # Site header
-│   ├── MenuDisplay.tsx     # Main menu component
-│   ├── ProductCard.tsx     # Product display card
-│   └── ProductModal.tsx    # Product detail modal
+│   ├── CartButton.tsx          # Floating/inline cart button
+│   ├── CartDrawer.tsx          # Slide-out cart panel
+│   ├── CategoryNav.tsx         # Category navigation
+│   ├── Header.tsx              # Site header
+│   ├── MenuDisplay.tsx         # Main menu component
+│   ├── ProductCard.tsx         # Product display card
+│   ├── ProductModal.tsx        # Product detail modal
+│   └── index.ts                # Component exports
 ├── features/
 │   ├── cart/
-│   │   ├── cartApi.ts      # Cart API endpoints
-│   │   └── CartProvider.tsx # Cart context & hooks
+│   │   ├── cartApi.ts          # Cart API endpoints (RTK Query)
+│   │   └── CartProvider.tsx    # Cart context & hooks
 │   └── public/
-│       └── publicApi.ts    # Public store/menu API
+│       └── publicApi.ts        # Public store/menu API (RTK Query)
 ├── lib/
-│   └── config.ts           # Configuration & utilities
+│   └── config.ts               # Configuration & utilities
 ├── store/
-│   └── store.ts            # Redux store setup
+│   └── store.ts                # Redux store setup
 └── types/
-    └── index.ts            # TypeScript definitions
+    └── index.ts                # TypeScript definitions
 ```
+
+## Pages
+
+| Route | Description |
+|-------|-------------|
+| `/` | Landing page listing available components and link to example |
+| `/example_menu_page` | Full working menu page example with all components in action |
 
 ## Customization
 
@@ -138,6 +159,8 @@ export default function AboutPage() {
 }
 ```
 
+For custom menu page designs, use the components from `src/components/` and refer to `/example_menu_page/page.tsx` as a reference implementation.
+
 ## API Integration
 
 ### Public API Endpoints
@@ -150,10 +173,12 @@ The starter uses these MENUOF public API endpoints:
 ### Cart API Endpoints
 
 - `GET /cart/:sessionId` - Get cart
-- `POST /cart/` - Create cart
+- `POST /cart/` - Create cart (called lazily when first item is added)
 - `POST /cart/:sessionId/items` - Add item
 - `PUT /cart/:sessionId/items/:itemId` - Update item
 - `DELETE /cart/:sessionId/items/:itemId` - Remove item
+
+> **Note**: The cart is created lazily - no POST request is made until the user adds their first item. This optimizes API usage on page load.
 
 ### Using the Cart Hook
 
@@ -235,14 +260,19 @@ If you see "Store Not Found" error:
 
 ### Images Not Loading
 
-1. Configure Next.js image domains in `next.config.mjs`:
-   ```js
+1. Configure Next.js image domains in `next.config.ts`:
+   ```ts
    images: {
      remotePatterns: [
-       { hostname: 'your-image-domain.com' }
+       {
+         protocol: 'https',
+         hostname: 'your-image-domain.com',
+       }
      ]
    }
    ```
+   
+   The starter already includes common domains (AWS, Cloudflare R2, internetok.it). Add new domains as needed.
 
 ## Support
 

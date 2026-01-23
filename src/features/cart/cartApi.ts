@@ -40,6 +40,8 @@ export const cartApi = createApi({
 
     /**
      * Create a new cart
+     * Note: No invalidatesTags - the response already contains the cart data,
+     * and the GET query will run separately when storeId is available
      */
     createCart: builder.mutation<ApiResponse<Cart>, CreateCartRequest>({
       query: (body) => ({
@@ -47,8 +49,6 @@ export const cartApi = createApi({
         method: 'POST',
         body,
       }),
-      invalidatesTags: (result) =>
-        result ? [{ type: 'Cart', id: result.data.sessionId }] : [],
     }),
 
     /**

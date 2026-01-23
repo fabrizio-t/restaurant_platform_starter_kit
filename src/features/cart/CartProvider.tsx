@@ -7,6 +7,7 @@ import React, {
   useState,
   useCallback,
   useMemo,
+  useRef,
 } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import {
@@ -77,12 +78,13 @@ export function CartProvider({
   }, [storeId]);
 
   // RTK Query hooks
+  // Skip until we have BOTH sessionId AND storeId to prevent duplicate requests
   const {
     data: cartResponse,
     isLoading: isCartLoading,
   } = useGetCartQuery(
     { sessionId: sessionId || '', storeId: currentStoreId, lang: language },
-    { skip: !sessionId }
+    { skip: !sessionId || !currentStoreId }
   );
 
   const [createCartMutation] = useCreateCartMutation();
@@ -118,28 +120,21 @@ export function CartProvider({
   const closeCart = useCallback(() => setIsCartOpen(false), []);
   const toggleCart = useCallback(() => setIsCartOpen((prev) => !prev), []);
 
-  // Initialize cart for a store
+  // Initialize cart for a store - just sets the storeId, no POST request
+  // Cart will be created lazily when adding the first item
   const initializeCart = useCallback(
     async (newStoreId: string) => {
-      if (!sessionId) return;
-
+      // Just set the store ID - the GET query will fetch existing cart if any
+      // Cart creation happens lazily in addItem when needed
       setCurrentStoreId(newStoreId);
-
-      try {
-        await createCartMutation({
-          sessionId,
-          storeId: newStoreId,
-        }).unwrap();
-      } catch (err: unknown) {
-        // Cart might already exist, which is fine
-        const error = err as { data?: { message?: string } };
-        console.log('Cart initialization:', error?.data?.message || 'Cart already exists');
-      }
     },
-    [sessionId, createCartMutation]
+    []
   );
 
-  // Add item to cart
+  // Track if cart has been created to avoid duplicate creation attempts
+  const cartCreatedRef = useRef(false);
+
+  // Add item to cart (creates cart lazily if needed)
   const addItem = useCallback(
     async (item: AddItemRequest) => {
       if (!sessionId) {
@@ -147,13 +142,29 @@ export function CartProvider({
         return;
       }
 
+      const storeId = item.storeId || currentStoreId;
+
       try {
         setError(null);
+
+        // Lazily create cart if it doesn't exist yet
+        if (!cart && !cartCreatedRef.current && storeId) {
+          cartCreatedRef.current = true;
+          try {
+            await createCartMutation({
+              sessionId,
+              storeId,
+            }).unwrap();
+          } catch {
+            // Cart might already exist (409), continue to add item
+          }
+        }
+
         await addItemMutation({
           sessionId,
           item: {
             ...item,
-            storeId: item.storeId || currentStoreId,
+            storeId,
           },
         }).unwrap();
         // Open cart drawer when item is added
@@ -164,7 +175,7 @@ export function CartProvider({
         throw err;
       }
     },
-    [sessionId, currentStoreId, addItemMutation, openCart]
+    [sessionId, currentStoreId, cart, addItemMutation, createCartMutation, openCart]
   );
 
   // Update cart item

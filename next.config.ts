@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  reactStrictMode: false, // Disable StrictMode to prevent double effect invocations
   images: {
     remotePatterns: [
       {
@@ -26,6 +27,10 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'pub-*.r2.dev',
+      },
+      {
+        protocol: 'https',
+        hostname: 'internetok.it',
       },
       {
         protocol: 'http',

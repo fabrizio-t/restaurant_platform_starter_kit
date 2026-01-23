@@ -17,10 +17,10 @@ export const publicApi = createApi({
     },
   }),
   tagTypes: ['PublicStore', 'PublicCategories', 'PublicProducts'],
-  // Reduce cache time for fresher data
-  keepUnusedDataFor: 60,
-  refetchOnFocus: true,
-  refetchOnReconnect: true,
+  // Menu data doesn't change frequently - longer cache time and no auto-refetch
+  keepUnusedDataFor: 300, // 5 minutes
+  refetchOnFocus: false,  // Don't refetch on tab focus - unnecessary for menu data
+  refetchOnReconnect: true, // Only refetch on reconnect (reasonable)
   endpoints: (builder) => ({
     /**
      * Get unified store menu - store info, catalogs, and categories
@@ -62,8 +62,8 @@ export const publicApi = createApi({
           limit,
         },
       }),
-      // Short cache time for products to ensure fresh data
-      keepUnusedDataFor: 30,
+      // Products cache - balance freshness with performance
+      keepUnusedDataFor: 120, // 2 minutes - products don't change that often
       providesTags: (result, error, { storeSlug, categoryId, page }) => [
         { type: 'PublicProducts', id: `${storeSlug}-${categoryId}-${page}` },
       ],
