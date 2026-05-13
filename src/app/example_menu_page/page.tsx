@@ -80,7 +80,7 @@ export default function ExampleMenuPage() {
             We could not find a store with the slug &quot;{STORE_SLUG}&quot;.
           </p>
           <code className="text-sm text-primary-600 dark:text-primary-400">
-            NEXT_PUBLIC_STORE_SLUG=your-store-slug
+            Update LOCAL_CONFIG.storeSlug in src/lib/config.ts
           </code>
         </div>
       </div>

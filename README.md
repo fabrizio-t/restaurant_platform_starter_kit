@@ -27,13 +27,30 @@ npm install
 npm run dev
 ```
 
-Create `.env.local` from `env.example`:
+The starter works without environment variables. Defaults are versioned in `src/lib/config.ts`:
+
+```ts
+export const LOCAL_CONFIG = {
+  apiBaseUrl: 'https://api.ordina.online/',
+  storeSlug: 'pizzaplace',
+  menuofPlatformUrl: 'https://ordina.online',
+  defaultLanguage: 'it',
+  localTheme: 'light',
+};
+```
+
+Use this local config when you want the repository to deploy immediately on Vercel without manually adding env vars.
+
+For AI-generated custom sites, the agent should update `LOCAL_CONFIG` first: set the correct `storeSlug`, API URL, checkout platform URL, language, and local theme mode there. Environment variables should be treated as optional deployment overrides, not as the only way to make the starter work.
+
+Optionally create `.env.local` from `env.example` to override the local config:
 
 ```env
 NEXT_PUBLIC_STORE_SLUG=your-store-slug
 NEXT_PUBLIC_API_BASE_URL=http://localhost:3001/
 NEXT_PUBLIC_MENUOF_PLATFORM_URL=http://localhost:3000
 NEXT_PUBLIC_DEFAULT_LANGUAGE=en
+NEXT_PUBLIC_LOCAL_THEME=light
 ```
 
 Open:
@@ -107,13 +124,23 @@ product.images // [{ small, medium, large }]
 
 ## Theme Support
 
-The starter supports store-driven themes:
+The starter separates local themes from API-driven branded themes:
 
 - `light`
 - `dark`
 - `branded`
 
-When the store API returns `defaultTheme: "branded"` and a `brandedTheme`, the starter injects CSS variables from:
+`light` and `dark` are local starter themes. Select the local fallback theme with `LOCAL_CONFIG.localTheme` in `src/lib/config.ts`, or override it with:
+
+```env
+NEXT_PUBLIC_LOCAL_THEME=light
+```
+
+Customize their variables in `src/app/globals.css`.
+
+When customizing a site, combine the user's visual instructions with `LOCAL_CONFIG.localTheme` and the CSS variables in `src/app/globals.css`. Keep the local light and dark themes usable even when no API branded theme is available.
+
+`branded` is used only when the store API returns `defaultTheme: "branded"` and a `brandedTheme.primaryColor`. In that case the starter injects CSS variables from:
 
 ```ts
 store.brandedTheme.primaryColor

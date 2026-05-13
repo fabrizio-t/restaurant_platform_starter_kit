@@ -2,36 +2,78 @@
 // MENUOF Starter Project - Configuration
 // ============================================
 
+type LocalTheme = 'light' | 'dark';
+
+/**
+ * Versioned fallback config.
+ *
+ * This keeps the starter deployable on Vercel even when no environment
+ * variables have been added yet. Environment variables still override these
+ * values, so production projects can configure everything from the host.
+ */
+export const LOCAL_CONFIG = {
+  apiBaseUrl: 'https://api.ordina.online/',
+  storeSlug: 'pizzaplace',
+  menuofPlatformUrl: 'https://ordina.online',
+  bucketUrl: 'https://3d1da5272d71dd829c0b3d13a993b10a.eu.r2.cloudflarestorage.com',
+  defaultLanguage: 'it',
+  localTheme: 'light' as LocalTheme,
+};
+
+function envOrLocal(value: string | undefined, localValue: string): string {
+  return value && value.trim() ? value : localValue;
+}
+
+function resolveLocalTheme(value: string): LocalTheme {
+  return value === 'dark' ? 'dark' : 'light';
+}
+
 /**
  * API Base URL - The MENUOF backend API endpoint
- * Default: http://localhost:3001/
+ * Environment variable overrides LOCAL_CONFIG.apiBaseUrl.
  */
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/';
+export const API_BASE_URL = envOrLocal(process.env.NEXT_PUBLIC_API_BASE_URL, LOCAL_CONFIG.apiBaseUrl);
 
 export const API_ORIGIN = API_BASE_URL.replace(/\/$/, '');
 
 /**
  * Store Slug - The unique identifier for your store
- * This is used to fetch store data from the MENUOF API
+ * Environment variable overrides LOCAL_CONFIG.storeSlug.
  */
-export const STORE_SLUG = process.env.NEXT_PUBLIC_STORE_SLUG || 'demo';
+export const STORE_SLUG = envOrLocal(process.env.NEXT_PUBLIC_STORE_SLUG, LOCAL_CONFIG.storeSlug);
 
 /**
  * MENUOF Platform URL - Where users are redirected for checkout
  * This should be your store's subdomain on the MENUOF platform
- * Example: https://your-store.ordina.online
+ * Environment variable overrides LOCAL_CONFIG.menuofPlatformUrl.
  */
-export const MENUOF_PLATFORM_URL = process.env.NEXT_PUBLIC_MENUOF_PLATFORM_URL || 'http://localhost:3000';
+export const MENUOF_PLATFORM_URL = envOrLocal(
+  process.env.NEXT_PUBLIC_MENUOF_PLATFORM_URL,
+  LOCAL_CONFIG.menuofPlatformUrl
+);
 
 /**
  * Image bucket URL - Where images are hosted (Cloudflare R2)
+ * Environment variable overrides LOCAL_CONFIG.bucketUrl.
  */
-export const BUCKET_URL = process.env.NEXT_PUBLIC_BUCKET_URL || 'https://3d1da5272d71dd829c0b3d13a993b10a.eu.r2.cloudflarestorage.com';
+export const BUCKET_URL = envOrLocal(process.env.NEXT_PUBLIC_BUCKET_URL, LOCAL_CONFIG.bucketUrl);
 
 /**
  * Default language for the application
+ * Environment variable overrides LOCAL_CONFIG.defaultLanguage.
  */
-export const DEFAULT_LANGUAGE = process.env.NEXT_PUBLIC_DEFAULT_LANGUAGE || 'en';
+export const DEFAULT_LANGUAGE = envOrLocal(
+  process.env.NEXT_PUBLIC_DEFAULT_LANGUAGE,
+  LOCAL_CONFIG.defaultLanguage
+);
+
+/**
+ * Local fallback theme used by the starter when the API does not return
+ * a complete branded theme. Customize the light/dark variables in globals.css.
+ */
+export const LOCAL_THEME = resolveLocalTheme(
+  envOrLocal(process.env.NEXT_PUBLIC_LOCAL_THEME, LOCAL_CONFIG.localTheme)
+);
 
 /**
  * Cart session key for localStorage

@@ -110,7 +110,7 @@ export function CategorySidebar({
         </button>
         {hasChildren && (
           <div>
-            {category.children.map((child) => renderCategory(child, depth + 1))}
+            {(category.children || []).map((child) => renderCategory(child, depth + 1))}
           </div>
         )}
       </div>

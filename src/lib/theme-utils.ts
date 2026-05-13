@@ -1,4 +1,5 @@
 import type { BrandedTheme, Store } from '@/types';
+import { LOCAL_THEME } from '@/lib/config';
 
 interface HSL {
   h: number;
@@ -183,19 +184,27 @@ export function generateBrandedCSS(theme: BrandedTheme): string {
 }
 
 export function applyStoreTheme(store?: Store | null): void {
-  if (typeof document === 'undefined' || !store) return;
+  if (typeof document === 'undefined') return;
 
   const root = document.documentElement;
-  root.classList.remove('light', 'dark', 'branded');
-  root.classList.add(store.defaultTheme || 'light');
+  const brandedStyle = document.getElementById('menuof-branded-theme');
+  const apiBrandedTheme =
+    store?.defaultTheme === 'branded' && store.brandedTheme?.primaryColor ? store.brandedTheme : null;
 
-  if (store.brandedTheme?.primaryColor) {
+  root.classList.remove('light', 'dark', 'branded');
+
+  if (apiBrandedTheme) {
     let style = document.getElementById('menuof-branded-theme');
     if (!style) {
       style = document.createElement('style');
       style.id = 'menuof-branded-theme';
       document.head.appendChild(style);
     }
-    style.textContent = generateBrandedCSS(store.brandedTheme);
+    style.textContent = generateBrandedCSS(apiBrandedTheme);
+    root.classList.add('branded');
+    return;
   }
+
+  brandedStyle?.remove();
+  root.classList.add(LOCAL_THEME);
 }

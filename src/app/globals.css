@@ -3,44 +3,80 @@
 @custom-variant dark (&:where(.dark, .dark *));
 @custom-variant branded (&:where(.branded, .branded *));
 
-/* Custom properties for theming */
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
-  --muted: 210 40% 96%;
-  --muted-foreground: 215 16% 47%;
-  --border: 214 32% 91%;
-  --header: 0 0% 100%;
-  --header-foreground: 222 47% 11%;
-  --header-muted: 215 16% 47%;
+/* Local light theme override. Used unless the API returns a branded theme. */
+:root,
+.light {
+  --background: #fbfcfb;
+  --foreground: #17211f;
+  --card: #ffffff;
+  --card-foreground: #17211f;
+  --muted: #eef4f2;
+  --muted-foreground: #65736f;
+  --secondary: #f5f8f7;
+  --secondary-foreground: #17211f;
+  --accent: #fff1ed;
+  --accent-foreground: #9f3a21;
+  --border: #d9e3df;
+  --input: #c9d8d3;
+  --ring: #0f766e;
+  --brand: #0f766e;
+  --brand-foreground: #ffffff;
+  --brand-hover: #115e59;
+  --brand-muted: #ccfbf1;
+  --brand-muted-foreground: #115e59;
+  --header: #ffffff;
+  --header-foreground: #17211f;
+  --header-muted: #65736f;
   --font-body: Arial, Helvetica, sans-serif;
   
-  /* Primary color - customize this for your brand */
-  --primary-50: #eff6ff;
-  --primary-100: #dbeafe;
-  --primary-200: #bfdbfe;
-  --primary-300: #93c5fd;
-  --primary-400: #60a5fa;
-  --primary-500: #3b82f6;
-  --primary-600: #2563eb;
-  --primary-700: #1d4ed8;
-  --primary-800: #1e40af;
-  --primary-900: #1e3a8a;
+  /* Local light primary palette */
+  --primary-50: #f0fdfa;
+  --primary-100: #ccfbf1;
+  --primary-200: #99f6e4;
+  --primary-300: #5eead4;
+  --primary-400: #2dd4bf;
+  --primary-500: #14b8a6;
+  --primary-600: #0d9488;
+  --primary-700: #0f766e;
+  --primary-800: #115e59;
+  --primary-900: #134e4a;
 }
 
+/* Local dark theme override. Select it with NEXT_PUBLIC_LOCAL_THEME=dark. */
 .dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-  --card: 222 47% 11%;
-  --card-foreground: 210 40% 98%;
-  --muted: 217 33% 17%;
-  --muted-foreground: 215 20% 65%;
-  --border: 217 33% 17%;
-  --header: 222 47% 11%;
-  --header-foreground: 210 40% 98%;
-  --header-muted: 215 20% 65%;
+  --background: #071312;
+  --foreground: #ecfdf8;
+  --card: #0d1f1d;
+  --card-foreground: #ecfdf8;
+  --muted: #14312e;
+  --muted-foreground: #93b8b0;
+  --secondary: #112927;
+  --secondary-foreground: #ecfdf8;
+  --accent: #3a1d18;
+  --accent-foreground: #fed7cc;
+  --border: #21413d;
+  --input: #2f5550;
+  --ring: #5eead4;
+  --brand: #5eead4;
+  --brand-foreground: #052e2b;
+  --brand-hover: #99f6e4;
+  --brand-muted: #134e4a;
+  --brand-muted-foreground: #ccfbf1;
+  --header: #0d1f1d;
+  --header-foreground: #ecfdf8;
+  --header-muted: #93b8b0;
+
+  /* Local dark primary palette */
+  --primary-50: #f0fdfa;
+  --primary-100: #ccfbf1;
+  --primary-200: #99f6e4;
+  --primary-300: #5eead4;
+  --primary-400: #2dd4bf;
+  --primary-500: #14b8a6;
+  --primary-600: #0d9488;
+  --primary-700: #0f766e;
+  --primary-800: #115e59;
+  --primary-900: #134e4a;
 }
 
 @theme inline {
