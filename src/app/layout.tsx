@@ -10,8 +10,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Restaurant Menu",
-  description: "Order delicious food from our menu",
+  title: "Raffaele di Stasio - Lissone",
+  description: "Pizza fritta contemporanea e cucina napoletana a Lissone.",
 };
 
 export default function RootLayout({
@@ -20,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={LOCAL_THEME} suppressHydrationWarning>
+    <html lang="it" className={LOCAL_THEME} suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased`} suppressHydrationWarning>
         <Providers>
           {children}

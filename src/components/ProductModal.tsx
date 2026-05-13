@@ -267,12 +267,12 @@ export function ProductModal({
             {/* Note */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Special instructions (optional)
+                Note speciali (opzionale)
               </label>
               <textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="Any allergies or special requests?"
+                placeholder="Allergie o richieste particolari?"
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
                 rows={2}
               />
@@ -281,7 +281,7 @@ export function ProductModal({
             {/* Quantity */}
             <div className="flex items-center justify-between mb-6">
               <span className="font-medium text-gray-700 dark:text-gray-300">
-                Quantity
+                Quantita
               </span>
               <div className="flex items-center gap-3">
                 <button
@@ -310,24 +310,24 @@ export function ProductModal({
                 onClick={handleAddToCart}
                 disabled={!isValid() || isSubmitting}
                 className={`
-                  w-full min-h-12 py-3 rounded-xl font-semibold text-white transition-all
+                  w-full min-h-12 py-3 font-semibold text-black transition-all
                   flex items-center justify-center gap-2
                   ${
                     isValid() && !isSubmitting
-                      ? 'bg-primary-600 hover:bg-primary-700 branded:bg-[var(--brand)] branded:text-[var(--brand-foreground)]'
+                      ? 'bg-primary-400 hover:bg-primary-300 branded:bg-[var(--brand)] branded:text-[var(--brand-foreground)]'
                       : 'bg-gray-400 cursor-not-allowed'
                   }
                 `}
               >
-                <span>Add to cart</span>
-                <span className="font-bold">{formatCurrency(calculateTotal(), currency)}</span>
+                <span>Aggiungi al carrello</span>
+                <span className="font-bold">{formatCurrency(calculateTotal(), currency, 'it-IT')}</span>
               </button>
             ) : (
               <button
                 onClick={onClose}
                 className="w-full py-4 rounded-xl font-semibold bg-gray-900 text-white dark:bg-white dark:text-gray-900"
               >
-                Close
+                Chiudi
               </button>
             )}
           </div>
