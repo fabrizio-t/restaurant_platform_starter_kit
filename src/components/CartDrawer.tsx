@@ -4,14 +4,14 @@ import React from 'react';
 import Image from 'next/image';
 import { X, Plus, Minus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
 import { useCart } from '@/features/cart/CartProvider';
-import { formatCurrency, getCheckoutUrl, getImageUrl, DEFAULT_LANGUAGE } from '@/lib/config';
+import { formatCurrency, getCheckoutUrl, getImageUrl } from '@/lib/config';
 
 interface CartDrawerProps {
   currency?: string;
   language?: string;
 }
 
-export function CartDrawer({ currency = 'EUR', language = DEFAULT_LANGUAGE }: CartDrawerProps) {
+export function CartDrawer({ currency = 'EUR' }: CartDrawerProps) {
   const {
     cart,
     isCartOpen,

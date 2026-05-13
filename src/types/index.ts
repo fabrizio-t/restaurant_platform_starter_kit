@@ -1,33 +1,39 @@
 // ============================================
-// MENUOF Starter Project - Type Definitions
+// MENUOF Starter Project - v2 Type Definitions
 // ============================================
 
-// Multi-language content type
-export interface MultiLanguageContent {
-  [key: string]: string | undefined;
-  en?: string;
-  es?: string;
-  fr?: string;
-  it?: string;
-  de?: string;
-  pt?: string;
-  ru?: string;
-  zh?: string;
+export interface ApiResponse<T> {
+  status: number;
+  data: T;
+  meta?: PaginationMeta;
 }
 
-// ============================================
-// Store Types
-// ============================================
+export interface ApiErrorResponse {
+  status: number;
+  error: {
+    message: string;
+    code?: string;
+  };
+}
+
+export interface PaginationMeta {
+  totalItems: number;
+  totalPages: number;
+  currentPage: number;
+  pageSize: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
 
 export interface StoreLocation {
-  streetName: string;
-  streetNumber: string;
-  city: string;
-  postalCode: string;
-  state: string;
-  country: string;
-  coordinates: [string, string];
-  fullAddress: string;
+  streetName?: string;
+  streetNumber?: string;
+  city?: string;
+  postalCode?: string;
+  state?: string;
+  country?: string;
+  coordinates?: [string, string];
+  fullAddress?: string;
 }
 
 export interface StoreContacts {
@@ -35,118 +41,140 @@ export interface StoreContacts {
   email?: string;
 }
 
-export interface StoreSettings {
-  opening_hours: {
-    mon: string[];
-    tue: string[];
-    wed: string[];
-    thu: string[];
-    fri: string[];
-    sat: string[];
-    sun: string[];
-  };
-  payment_methods: string[];
-  takeaway?: {
-    enabled: boolean;
-    minimum_order_notice?: number;
-  };
-  delivery?: {
-    enabled: boolean;
-    minimum_order_notice?: number;
-    delivery_areas?: Array<{
-      name: string;
-      polygon: number[][];
-      cost: string;
-      free_delivery_threshold: string;
-    }>;
-  };
+export interface SocialLinks {
+  facebook?: string;
+  instagram?: string;
+  tiktok?: string;
+  whatsapp?: string;
+  tripAdvisor?: string;
+  googleMaps?: string;
+  website?: string;
+}
+
+export interface WeekSchedule {
+  [key: string]: string[];
+  mon: string[];
+  tue: string[];
+  wed: string[];
+  thu: string[];
+  fri: string[];
+  sat: string[];
+  sun: string[];
+}
+
+export interface ActiveClosure {
+  id: string;
+  start_date: string;
+  end_date: string;
+  message: string;
+  affects: Record<string, unknown>;
+}
+
+export interface BrandedTheme {
+  primaryColor?: string;
+  backgroundColor?: string;
+  textColor?: string;
+  headerColor?: string;
+  fontFamily?: string;
+  variableOverrides?: Record<string, string>;
 }
 
 export interface Store {
   _id: string;
-  name: string | MultiLanguageContent;
-  description?: string | MultiLanguageContent;
+  slug_url: string;
+  name: string;
+  description?: string;
   logo?: string;
   banner?: string;
-  language?: string;
+  currency?: string;
   timezone?: string;
-  slug_url?: string;
+  language?: string;
+  defaultTheme?: 'light' | 'dark' | 'branded';
+  brandedTheme?: BrandedTheme;
   location?: StoreLocation;
   contacts?: StoreContacts;
-  settings?: StoreSettings;
-  currency?: string;
-  isActive?: boolean;
-  catalogs?: Catalog[];
+  socialLinks?: SocialLinks;
+  settings?: {
+    opening_hours?: WeekSchedule;
+    payment_methods?: unknown[];
+    reservations?: { enabled: boolean };
+    orders?: {
+      enabled: boolean;
+      pickup_enabled: boolean;
+      delivery_enabled: boolean;
+    };
+    active_closures?: ActiveClosure[];
+  };
+  catalogs: CatalogSummary[];
 }
 
-// ============================================
-// Catalog Types
-// ============================================
+export interface CatalogSummary {
+  _id: string;
+  name: string;
+  image?: string;
+  orderTypes: string[];
+  slugUrl?: string;
+  acceptOrders?: boolean;
+  scheduleEnabled?: boolean;
+  listed?: boolean;
+}
 
 export interface Catalog {
   _id: string;
-  slugUrl?: string;
-  name: string | MultiLanguageContent;
-  description?: string | MultiLanguageContent | null;
+  name: string;
+  description?: string;
   image?: string;
   orderTypes: string[];
-  schedule: {
-    mon: string[];
-    tue: string[];
-    wed: string[];
-    thu: string[];
-    fri: string[];
-    sat: string[];
-    sun: string[];
-  };
-  isActive: boolean;
-  orderBy: number;
-  categories?: Category[];
+  slugUrl?: string;
+  acceptOrders?: boolean;
+  scheduleEnabled?: boolean;
+  categoryNavigationMode?: 'list' | 'visual';
+  productDisplayMode?: 'visual' | 'list';
+  schedule: WeekSchedule;
+  categories: Category[];
 }
-
-// ============================================
-// Category Types
-// ============================================
 
 export interface Category {
   _id: string;
-  name: string | MultiLanguageContent;
+  name: string;
+  description?: string;
   image?: string;
-  isActive: boolean;
-  orderBy: number;
+  isActive?: boolean;
+  orderBy?: number;
   productCount?: number;
-  products?: Product[];
-  children: Category[];
+  children?: Category[];
 }
 
-// ============================================
-// Product Types
-// ============================================
+export interface Allergen {
+  id: number;
+  name: string;
+}
 
 export interface ProductImage {
-  original?: string;
+  small?: string;
   medium?: string;
+  large?: string;
+  original?: string;
   thumbnail?: string;
+  alt?: string;
 }
 
 export interface VariantItem {
   _id: string;
-  name: string | MultiLanguageContent;
-  description?: string | MultiLanguageContent;
+  name: string;
+  description?: string;
   ingredients?: string[];
-  allergens?: string[];
+  allergens?: Allergen[];
   price: number;
   quantity?: number;
   currency?: string;
   images?: ProductImage[];
-  isActive?: boolean;
-  orderBy?: number;
 }
 
 export interface Variant {
   _id: string;
-  name: string | MultiLanguageContent;
-  displayName?: string | MultiLanguageContent;
+  name: string;
+  displayName?: string;
   isMultipleChoice: boolean;
   minChoice: number;
   maxChoice: number;
@@ -155,10 +183,10 @@ export interface Variant {
 
 export interface Product {
   _id: string;
-  name: string | MultiLanguageContent;
-  description?: string | MultiLanguageContent;
+  name: string;
+  description?: string;
   ingredients?: string[];
-  allergens?: string[];
+  allergens?: Allergen[];
   price: number;
   quantity?: number;
   currency?: string;
@@ -173,7 +201,6 @@ export interface Product {
 // Cart Types
 // ============================================
 
-// Types for data SENT to the backend (just IDs)
 export interface SelectedVariantItemRequest {
   productId: string;
   quantity: number;
@@ -184,7 +211,6 @@ export interface SelectedVariantRequest {
   selectedItems: SelectedVariantItemRequest[];
 }
 
-// Types for data RECEIVED from the backend (populated with details)
 export interface SelectedVariantItem {
   productId: string;
   productName: string;
@@ -203,7 +229,7 @@ export interface CartItem {
   productId: string;
   productName: string;
   productPrice: number;
-  productImage?: string;
+  productImage?: string | null;
   categoryIds?: string[];
   quantity: number;
   note?: string;
@@ -214,14 +240,14 @@ export interface CartItem {
 export interface Cart {
   _id?: string;
   sessionId: string;
-  storeId: string;
-  userId?: string;
+  storeId: string | null;
+  userId?: string | null;
   items: CartItem[];
   subtotal: number;
   itemCount: number;
+  storeCurrency?: string;
 }
 
-// API Request types
 export interface CreateCartRequest {
   sessionId: string;
   storeId: string;
@@ -234,70 +260,8 @@ export interface AddItemRequest {
   note?: string;
   selectedVariants?: SelectedVariantRequest[];
 }
-
 export interface UpdateItemRequest {
   quantity?: number;
   note?: string;
   selectedVariants?: SelectedVariantRequest[];
-}
-
-// ============================================
-// API Response Types
-// ============================================
-
-export interface ApiResponse<T> {
-  status: number;
-  data: T;
-  message?: string;
-}
-
-export interface ApiMeta {
-  language: string;
-  fallbackLanguage?: string;
-  storeSlug?: string;
-  catalogId?: string;
-  categoryId?: string;
-  totalCategories?: number;
-  totalProducts?: number;
-  totalPages?: number;
-  currentPage?: number;
-  pageSize?: number;
-  hasNextPage?: boolean;
-  hasPreviousPage?: boolean;
-  lastUpdated: string;
-}
-
-// Public API Response Types
-export interface UnifiedStoreMenuResponse {
-  store: Store;
-  catalogs: Catalog[];
-  selectedCatalog: Catalog | null;
-  requiresCatalogSelection: boolean;
-  meta: ApiMeta;
-}
-
-export interface PublicProductsResponse {
-  store: {
-    _id: string;
-    name: string;
-    slug_url: string;
-  };
-  catalog: {
-    _id: string;
-    name: string;
-  };
-  category: {
-    _id: string;
-    name: string;
-    image?: string;
-    isActive: boolean;
-    orderBy: number;
-  };
-  products: Product[];
-  meta: ApiMeta;
-}
-
-export interface PublicStoreResponse {
-  store: Store;
-  meta?: ApiMeta;
 }

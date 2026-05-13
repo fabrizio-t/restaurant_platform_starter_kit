@@ -2,9 +2,10 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Plus, Minus, AlertTriangle } from 'lucide-react';
-import { getLocalizedText, formatCurrency, getImageUrl, DEFAULT_LANGUAGE } from '@/lib/config';
+import { Image as ImageIcon, Plus } from 'lucide-react';
+import { formatCurrency, getProductImageUrl } from '@/lib/config';
 import { useCart } from '@/features/cart/CartProvider';
+import { ModernAllergenIcons } from './ModernAllergenChips';
 import type { Product } from '@/types';
 
 interface ProductCardProps {
@@ -12,69 +13,54 @@ interface ProductCardProps {
   storeId: string;
   language?: string;
   currency?: string;
-  onProductClick?: (product: Product) => void;
+  cartEnabled?: boolean;
+  onAddToCartClick?: (product: Product) => void;
+  onImageClick?: (product: Product) => void;
 }
 
 export function ProductCard({
   product,
-  storeId,
-  language = DEFAULT_LANGUAGE,
   currency = 'EUR',
-  onProductClick,
+  cartEnabled = true,
+  onAddToCartClick,
+  onImageClick,
 }: ProductCardProps) {
-  const { addItem, getProductQuantity } = useCart();
+  const { getProductQuantity } = useCart();
   const quantityInCart = getProductQuantity(product._id);
 
-  const productName = getLocalizedText(product.name, language);
-  const productDescription = getLocalizedText(product.description, language);
+  const productName = product.name;
+  const productDescription = product.description;
   const hasVariants = product.variants && product.variants.length > 0;
   
   // Get the first image with proper URL
-  const imageUrl = getImageUrl(product.images?.[0]?.medium || product.images?.[0]?.original);
+  const imageUrl = getProductImageUrl(product.images?.[0], 'medium');
 
-  const handleAddToCart = async (e: React.MouseEvent) => {
+  const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
-    
-    // If product has variants, open the modal instead
-    if (hasVariants && onProductClick) {
-      onProductClick(product);
-      return;
-    }
-
-    try {
-      await addItem({
-        productId: product._id,
-        quantity: 1,
-        storeId,
-      });
-    } catch (error) {
-      console.error('Failed to add item to cart:', error);
-    }
-  };
-
-  const handleCardClick = () => {
-    if (onProductClick) {
-      onProductClick(product);
-    }
+    onAddToCartClick?.(product);
   };
 
   return (
     <div
-      onClick={handleCardClick}
       className={`
-        bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700
+        bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 branded:bg-[var(--card)] branded:border-[var(--border)]
         overflow-hidden transition-all duration-200
-        ${onProductClick ? 'cursor-pointer hover:shadow-md hover:border-primary-300 dark:hover:border-primary-600' : ''}
+        hover:shadow-md hover:border-primary-300 dark:hover:border-primary-600
       `}
     >
       {/* Image */}
-      <div className="relative aspect-[4/3] bg-gray-100 dark:bg-gray-700">
+      <button
+        type="button"
+        onClick={() => onImageClick?.(product)}
+        className="relative block w-full aspect-[4/3] bg-gray-100 dark:bg-gray-700 overflow-hidden text-left"
+        aria-label={`View details for ${productName}`}
+      >
         {imageUrl ? (
           <Image
             src={imageUrl}
             alt={productName}
             fill
-            className="object-cover"
+            className="object-cover transition-transform duration-300 hover:scale-105"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
         ) : (
@@ -91,7 +77,13 @@ export function ProductCard({
             {quantityInCart} in cart
           </div>
         )}
-      </div>
+        {product.images && product.images.length > 1 && (
+          <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-lg bg-black/60 px-2 py-1 text-xs font-medium text-white">
+            <ImageIcon className="h-3.5 w-3.5" />
+            {product.images.length}
+          </span>
+        )}
+      </button>
 
       {/* Content */}
       <div className="p-4">
@@ -105,30 +97,25 @@ export function ProductCard({
           </p>
         )}
 
-        {/* Allergens */}
         {product.allergens && product.allergens.length > 0 && (
-          <div className="flex items-center gap-1 mb-3">
-            <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-            <span className="text-xs text-gray-500 dark:text-gray-400">
-              {product.allergens.slice(0, 3).join(', ')}
-              {product.allergens.length > 3 && ` +${product.allergens.length - 3}`}
-            </span>
-          </div>
+          <ModernAllergenIcons allergens={product.allergens} size={20} maxVisible={6} className="mb-3" />
         )}
 
         {/* Price and Add button */}
         <div className="flex items-center justify-between">
           <span className="text-lg font-bold text-gray-900 dark:text-white">
-            {formatCurrency(product.price, currency)}
+            {hasVariants ? `from ${formatCurrency(product.price, currency)}` : formatCurrency(product.price, currency)}
           </span>
           
-          <button
-            onClick={handleAddToCart}
-            className="flex items-center gap-1.5 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            {hasVariants ? 'Choose' : 'Add'}
-          </button>
+          {cartEnabled && (
+            <button
+              onClick={handleAddToCart}
+              className="flex items-center gap-1.5 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors branded:bg-[var(--brand)] branded:text-[var(--brand-foreground)]"
+            >
+              <Plus className="w-4 h-4" />
+              {hasVariants ? 'Choose' : 'Add'}
+            </button>
+          )}
         </div>
       </div>
     </div>

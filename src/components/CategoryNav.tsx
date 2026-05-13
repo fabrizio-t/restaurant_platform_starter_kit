@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { getLocalizedText, DEFAULT_LANGUAGE } from '@/lib/config';
 import type { Category } from '@/types';
 
 interface CategoryNavProps {
@@ -15,7 +14,6 @@ export function CategoryNav({
   categories,
   selectedCategoryId,
   onCategorySelect,
-  language = DEFAULT_LANGUAGE,
 }: CategoryNavProps) {
   // Flatten categories for horizontal navigation
   const flattenCategories = (cats: Category[], depth = 0): (Category & { depth: number })[] => {
@@ -41,7 +39,7 @@ export function CategoryNav({
         <div className="flex gap-2 p-4 min-w-max">
           {flatCategories.map((category) => {
             const isSelected = category._id === selectedCategoryId;
-            const categoryName = getLocalizedText(category.name, language);
+            const categoryName = category.name;
 
             return (
               <button
@@ -53,13 +51,13 @@ export function CategoryNav({
                   ${category.depth > 0 ? 'ml-2' : ''}
                   ${
                     isSelected
-                      ? 'bg-primary-600 text-white shadow-md'
+                      ? 'bg-primary-600 text-white shadow-md branded:bg-[var(--brand)] branded:text-[var(--brand-foreground)]'
                       : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                   }
                 `}
               >
                 {category.depth > 0 && (
-                  <span className="text-gray-400 mr-1">└</span>
+                  <span className="text-gray-400 mr-1">-</span>
                 )}
                 {categoryName}
                 {category.productCount !== undefined && category.productCount > 0 && (
@@ -81,11 +79,10 @@ export function CategorySidebar({
   categories,
   selectedCategoryId,
   onCategorySelect,
-  language = DEFAULT_LANGUAGE,
 }: CategoryNavProps) {
   const renderCategory = (category: Category, depth = 0) => {
     const isSelected = category._id === selectedCategoryId;
-    const categoryName = getLocalizedText(category.name, language);
+    const categoryName = category.name;
     const hasChildren = category.children && category.children.length > 0;
 
     return (

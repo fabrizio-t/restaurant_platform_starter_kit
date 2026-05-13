@@ -2,9 +2,8 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Menu } from 'lucide-react';
 import { CartButton } from './CartButton';
-import { getLocalizedText, getImageUrl, DEFAULT_LANGUAGE } from '@/lib/config';
+import { getImageUrl } from '@/lib/config';
 import type { Store } from '@/types';
 
 interface HeaderProps {
@@ -13,12 +12,12 @@ interface HeaderProps {
   currency?: string;
 }
 
-export function Header({ store, language = DEFAULT_LANGUAGE, currency = 'EUR' }: HeaderProps) {
-  const storeName = store ? getLocalizedText(store.name, language) : 'Restaurant';
+export function Header({ store, currency = 'EUR' }: HeaderProps) {
+  const storeName = store?.name || 'Restaurant';
   const storeLogo = getImageUrl(store?.logo);
 
   return (
-    <header className="sticky top-0 z-40 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+    <header className="sticky top-0 z-40 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm branded:bg-[var(--header)] branded:text-[var(--header-foreground)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo and Name */}
@@ -39,7 +38,7 @@ export function Header({ store, language = DEFAULT_LANGUAGE, currency = 'EUR' }:
                 </span>
               </div>
             )}
-            <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white truncate">
+            <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white branded:text-[var(--header-foreground)] truncate">
               {storeName}
             </h1>
           </div>

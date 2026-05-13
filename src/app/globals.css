@@ -1,9 +1,21 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant branded (&:where(.branded, .branded *));
+
 /* Custom properties for theming */
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+  --border: 214 32% 91%;
+  --header: 0 0% 100%;
+  --header-foreground: 222 47% 11%;
+  --header-muted: 215 16% 47%;
+  --font-body: Arial, Helvetica, sans-serif;
   
   /* Primary color - customize this for your brand */
   --primary-50: #eff6ff;
@@ -18,10 +30,23 @@
   --primary-900: #1e3a8a;
 }
 
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --card: 222 47% 11%;
+  --card-foreground: 210 40% 98%;
+  --muted: 217 33% 17%;
+  --muted-foreground: 215 20% 65%;
+  --border: 217 33% 17%;
+  --header: 222 47% 11%;
+  --header-foreground: 210 40% 98%;
+  --header-muted: 215 20% 65%;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-body), var(--font-inter);
   
   /* Primary color palette */
   --color-primary-50: var(--primary-50);
@@ -36,16 +61,10 @@
   --color-primary-900: var(--primary-900);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
+  font-family: var(--font-body), var(--font-inter), Arial, Helvetica, sans-serif;
 }
 
 /* Custom scrollbar for category navigation */

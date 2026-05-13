@@ -21,12 +21,35 @@ import {
 import { CART_SESSION_KEY, DEFAULT_LANGUAGE } from '@/lib/config';
 import type { Cart, AddItemRequest, UpdateItemRequest } from '@/types';
 
+function getInitialSessionId(): string | null {
+  if (typeof window === 'undefined') return null;
+
+  const url = new URL(window.location.href);
+  const urlSessionId = url.searchParams.get('sessionId');
+  let storedSessionId = localStorage.getItem(CART_SESSION_KEY);
+
+  if (urlSessionId) {
+    storedSessionId = urlSessionId;
+    localStorage.setItem(CART_SESSION_KEY, urlSessionId);
+    url.searchParams.delete('sessionId');
+    window.history.replaceState({}, '', url.toString());
+  }
+
+  if (!storedSessionId) {
+    storedSessionId = uuidv4();
+    localStorage.setItem(CART_SESSION_KEY, storedSessionId);
+  }
+
+  return storedSessionId;
+}
+
 interface CartContextType {
   cart: Cart | null;
   isLoading: boolean;
   error: string | null;
   itemCount: number;
   subtotal: number;
+  currency: string;
   sessionId: string | null;
   isCartOpen: boolean;
   openCart: () => void;
@@ -53,38 +76,20 @@ export function CartProvider({
   storeId,
   language = DEFAULT_LANGUAGE,
 }: CartProviderProps) {
-  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(() => getInitialSessionId());
   const [currentStoreId, setCurrentStoreId] = useState<string | undefined>(storeId);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Initialize session ID from localStorage
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      let storedSessionId = localStorage.getItem(CART_SESSION_KEY);
-      if (!storedSessionId) {
-        storedSessionId = uuidv4();
-        localStorage.setItem(CART_SESSION_KEY, storedSessionId);
-      }
-      setSessionId(storedSessionId);
-    }
-  }, []);
-
-  // Update store ID when prop changes
-  useEffect(() => {
-    if (storeId) {
-      setCurrentStoreId(storeId);
-    }
-  }, [storeId]);
 
   // RTK Query hooks
   // Skip until we have BOTH sessionId AND storeId to prevent duplicate requests
   const {
     data: cartResponse,
     isLoading: isCartLoading,
+    error: cartQueryError,
   } = useGetCartQuery(
     { sessionId: sessionId || '', storeId: currentStoreId, lang: language },
-    { skip: !sessionId || !currentStoreId }
+    { skip: !sessionId }
   );
 
   const [createCartMutation] = useCreateCartMutation();
@@ -95,6 +100,15 @@ export function CartProvider({
 
   const cart = cartResponse?.data || null;
 
+  useEffect(() => {
+    const errorCode = (cartQueryError as { data?: { error?: { code?: string } } })?.data?.error?.code;
+    if (errorCode === 'CART_EXPIRED') {
+      const newSessionId = uuidv4();
+      localStorage.setItem(CART_SESSION_KEY, newSessionId);
+      window.setTimeout(() => setSessionId(newSessionId), 0);
+    }
+  }, [cartQueryError]);
+
   // Derived values
   const itemCount = useMemo(() => {
     return cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
@@ -104,6 +118,8 @@ export function CartProvider({
     return cart?.subtotal || 0;
   }, [cart?.subtotal]);
 
+  const currency = cart?.storeCurrency || 'EUR';
+
   // Get the total quantity of a specific product in the cart
   const getProductQuantity = useCallback(
     (productId: string): number => {
@@ -112,7 +128,7 @@ export function CartProvider({
         .filter((item) => item.productId === productId)
         .reduce((sum, item) => sum + item.quantity, 0);
     },
-    [cart?.items]
+    [cart]
   );
 
   // Cart visibility handlers
@@ -170,8 +186,8 @@ export function CartProvider({
         // Open cart drawer when item is added
         openCart();
       } catch (err: unknown) {
-        const error = err as { data?: { message?: string } };
-        setError(error?.data?.message || 'Failed to add item to cart');
+        const error = err as { data?: { error?: { message?: string }; message?: string } };
+        setError(error?.data?.error?.message || error?.data?.message || 'Failed to add item to cart');
         throw err;
       }
     },
@@ -194,8 +210,8 @@ export function CartProvider({
           updates,
         }).unwrap();
       } catch (err: unknown) {
-        const error = err as { data?: { message?: string } };
-        setError(error?.data?.message || 'Failed to update item');
+        const error = err as { data?: { error?: { message?: string }; message?: string } };
+        setError(error?.data?.error?.message || error?.data?.message || 'Failed to update item');
         throw err;
       }
     },
@@ -217,8 +233,8 @@ export function CartProvider({
           itemId,
         }).unwrap();
       } catch (err: unknown) {
-        const error = err as { data?: { message?: string } };
-        setError(error?.data?.message || 'Failed to remove item');
+        const error = err as { data?: { error?: { message?: string }; message?: string } };
+        setError(error?.data?.error?.message || error?.data?.message || 'Failed to remove item');
         throw err;
       }
     },
@@ -236,8 +252,8 @@ export function CartProvider({
       setError(null);
       await clearCartMutation({ sessionId }).unwrap();
     } catch (err: unknown) {
-      const error = err as { data?: { message?: string } };
-      setError(error?.data?.message || 'Failed to clear cart');
+      const error = err as { data?: { error?: { message?: string }; message?: string } };
+      setError(error?.data?.error?.message || error?.data?.message || 'Failed to clear cart');
       throw err;
     }
   }, [sessionId, clearCartMutation]);
@@ -249,6 +265,7 @@ export function CartProvider({
       error,
       itemCount,
       subtotal,
+      currency,
       sessionId,
       isCartOpen,
       openCart,
@@ -267,6 +284,7 @@ export function CartProvider({
       error,
       itemCount,
       subtotal,
+      currency,
       sessionId,
       isCartOpen,
       openCart,

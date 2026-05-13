@@ -1,97 +1,92 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { API_BASE_URL } from '@/lib/config';
-import type {
-  ApiResponse,
-  UnifiedStoreMenuResponse,
-  PublicProductsResponse,
-  PublicStoreResponse,
-} from '@/types';
+import { API_ORIGIN } from '@/lib/config';
+import type { ApiResponse, Catalog, Product, Store } from '@/types';
 
 export const publicApi = createApi({
   reducerPath: 'publicApi',
   baseQuery: fetchBaseQuery({
-    baseUrl: `${API_BASE_URL}public/`,
+    baseUrl: API_ORIGIN,
     prepareHeaders: (headers) => {
       headers.set('Content-Type', 'application/json');
       return headers;
     },
   }),
-  tagTypes: ['PublicStore', 'PublicCategories', 'PublicProducts'],
-  // Menu data doesn't change frequently - longer cache time and no auto-refetch
-  keepUnusedDataFor: 300, // 5 minutes
-  refetchOnFocus: false,  // Don't refetch on tab focus - unnecessary for menu data
-  refetchOnReconnect: true, // Only refetch on reconnect (reasonable)
+  tagTypes: ['Store', 'Catalog', 'Products'],
+  keepUnusedDataFor: 300,
+  refetchOnFocus: false,
+  refetchOnReconnect: true,
   endpoints: (builder) => ({
-    /**
-     * Get unified store menu - store info, catalogs, and categories
-     * This is the main endpoint to initialize the menu display
-     */
-    getUnifiedStoreMenu: builder.query<
-      ApiResponse<UnifiedStoreMenuResponse>,
-      { storeSlug: string; language?: string }
-    >({
+    getStore: builder.query<ApiResponse<Store>, { storeSlug: string; language?: string }>({
       query: ({ storeSlug, language = 'en' }) => ({
-        url: `store-menu/${storeSlug}`,
+        url: `/v2/stores/${storeSlug}`,
         params: { lang: language },
       }),
-      providesTags: (result, error, { storeSlug }) => [
-        { type: 'PublicStore', id: storeSlug },
-        { type: 'PublicCategories', id: `${storeSlug}-unified` },
+      providesTags: (result, error, { storeSlug }) => [{ type: 'Store', id: storeSlug }],
+    }),
+
+    getCatalog: builder.query<
+      ApiResponse<Catalog>,
+      { storeSlug: string; catalogId: string; language?: string }
+    >({
+      query: ({ storeSlug, catalogId, language = 'en' }) => ({
+        url: `/v2/stores/${storeSlug}/catalogs/${catalogId}`,
+        params: { lang: language },
+      }),
+      providesTags: (result, error, { storeSlug, catalogId }) => [
+        { type: 'Catalog', id: `${storeSlug}-${catalogId}` },
       ],
     }),
 
-    /**
-     * Get products by category - paginated
-     */
-    getPublicProducts: builder.query<
-      ApiResponse<PublicProductsResponse>,
+    getProducts: builder.query<
+      ApiResponse<Product[]>,
       {
         storeSlug: string;
-        categoryId: string;
+        categoryId?: string;
+        catalogId?: string;
         language?: string;
         page?: number;
         limit?: number;
+        search?: string;
+        excludeAllergens?: string;
       }
     >({
-      query: ({ storeSlug, categoryId, language = 'en', page = 1, limit = 20 }) => ({
-        url: `products/${storeSlug}`,
+      query: ({
+        storeSlug,
+        categoryId,
+        catalogId,
+        language = 'en',
+        page = 1,
+        limit = 20,
+        search,
+        excludeAllergens,
+      }) => ({
+        url: `/v2/stores/${storeSlug}/products`,
         params: {
-          categoryId,
+          ...(categoryId && { categoryId }),
+          ...(catalogId && { catalogId }),
           lang: language,
           page,
           limit,
+          ...(search && { search }),
+          ...(excludeAllergens && { excludeAllergens }),
         },
       }),
-      // Products cache - balance freshness with performance
-      keepUnusedDataFor: 120, // 2 minutes - products don't change that often
-      providesTags: (result, error, { storeSlug, categoryId, page }) => [
-        { type: 'PublicProducts', id: `${storeSlug}-${categoryId}-${page}` },
-      ],
-    }),
-
-    /**
-     * Get basic store information
-     */
-    getPublicStore: builder.query<
-      ApiResponse<PublicStoreResponse>,
-      { storeSlug: string; language?: string }
-    >({
-      query: ({ storeSlug, language = 'en' }) => ({
-        url: `store/${storeSlug}`,
-        params: { lang: language },
-      }),
-      providesTags: (result, error, { storeSlug }) => [
-        { type: 'PublicStore', id: storeSlug },
+      keepUnusedDataFor: 30,
+      providesTags: (result, error, { storeSlug, categoryId, catalogId, page, search, excludeAllergens }) => [
+        {
+          type: 'Products',
+          id: `${storeSlug}-${categoryId || catalogId || 'all'}-${page || 1}-${search || ''}-${excludeAllergens || ''}`,
+        },
       ],
     }),
   }),
 });
 
 export const {
-  useGetUnifiedStoreMenuQuery,
-  useLazyGetUnifiedStoreMenuQuery,
-  useGetPublicProductsQuery,
-  useLazyGetPublicProductsQuery,
-  useGetPublicStoreQuery,
-  useLazyGetPublicStoreQuery,
+  useGetStoreQuery,
+  useLazyGetStoreQuery,
+  useGetCatalogQuery,
+  useLazyGetCatalogQuery,
+  useGetProductsQuery,
+  useLazyGetProductsQuery,
 } = publicApi;

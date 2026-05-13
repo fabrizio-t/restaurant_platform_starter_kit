@@ -1,38 +1,64 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { useGetUnifiedStoreMenuQuery } from '@/features/public/publicApi';
+import React, { useEffect, useMemo, useState } from 'react';
+import Image from 'next/image';
+import { useGetCatalogQuery, useGetStoreQuery } from '@/features/public/publicApi';
 import { useCart } from '@/features/cart/CartProvider';
 import { Header, MenuDisplay, CartDrawer, CartButton } from '@/components';
-import { STORE_SLUG, DEFAULT_LANGUAGE, getLocalizedText } from '@/lib/config';
+import { STORE_SLUG, DEFAULT_LANGUAGE, getImageUrl } from '@/lib/config';
+import { applyStoreTheme } from '@/lib/theme-utils';
 
 export default function ExampleMenuPage() {
   const { initializeCart } = useCart();
-  
-  // Fetch store and menu data
+  const [selectedCatalogId, setSelectedCatalogId] = useState<string | undefined>();
+
   const {
-    data: menuResponse,
-    isLoading,
-    isError,
-    error,
-  } = useGetUnifiedStoreMenuQuery({
+    data: storeResponse,
+    isLoading: isStoreLoading,
+    isError: isStoreError,
+  } = useGetStoreQuery({
     storeSlug: STORE_SLUG,
     language: DEFAULT_LANGUAGE,
   });
 
-  const store = menuResponse?.data?.store;
-  const catalogs = menuResponse?.data?.catalogs || [];
-  const selectedCatalog = menuResponse?.data?.selectedCatalog || catalogs[0];
+  const store = storeResponse?.data;
+  const listedCatalogs = useMemo(
+    () => (store?.catalogs || []).filter((catalog) => catalog.listed !== false),
+    [store?.catalogs]
+  );
 
-  // Initialize cart when store data is loaded
+  useEffect(() => {
+    if (store) {
+      applyStoreTheme(store);
+    }
+  }, [store]);
+
   useEffect(() => {
     if (store?._id) {
       initializeCart(store._id);
     }
   }, [store?._id, initializeCart]);
 
-  // Loading state
-  if (isLoading) {
+  const activeCatalogId = selectedCatalogId || listedCatalogs[0]?._id;
+
+  const {
+    data: catalogResponse,
+    isLoading: isCatalogLoading,
+  } = useGetCatalogQuery(
+    {
+      storeSlug: STORE_SLUG,
+      catalogId: activeCatalogId || '',
+      language: DEFAULT_LANGUAGE,
+    },
+    { skip: !activeCatalogId }
+  );
+
+  const selectedCatalog = catalogResponse?.data;
+  const currency = store?.currency || 'EUR';
+  const ordersEnabled = store?.settings?.orders?.enabled !== false && selectedCatalog?.acceptOrders !== false;
+  const isLoading = isStoreLoading || isCatalogLoading;
+
+  if (isLoading && !store) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
@@ -43,47 +69,35 @@ export default function ExampleMenuPage() {
     );
   }
 
-  // Error state
-  if (isError || !store) {
+  if (isStoreError || !store) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
         <div className="max-w-md text-center">
-          <div className="w-16 h-16 mx-auto mb-4 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
-            <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          </div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
             Store Not Found
           </h2>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
-            We couldn&apos;t find a store with the slug &quot;{STORE_SLUG}&quot;. Please check your configuration.
+            We could not find a store with the slug &quot;{STORE_SLUG}&quot;.
           </p>
-          <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 text-left">
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-              Make sure you have set the correct environment variable:
-            </p>
-            <code className="text-sm text-primary-600 dark:text-primary-400">
-              NEXT_PUBLIC_STORE_SLUG=your-store-slug
-            </code>
-          </div>
+          <code className="text-sm text-primary-600 dark:text-primary-400">
+            NEXT_PUBLIC_STORE_SLUG=your-store-slug
+          </code>
         </div>
       </div>
     );
   }
 
-  // No catalog available
-  if (!selectedCatalog) {
+  if (listedCatalogs.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <Header store={store} />
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 branded:bg-[var(--background)]">
+        <Header store={store} currency={currency} />
         <div className="flex items-center justify-center p-4 mt-20">
           <div className="text-center">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white branded:text-[var(--foreground)] mb-2">
               No Menu Available
             </h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              This store doesn&apos;t have any active menus at the moment.
+            <p className="text-gray-600 dark:text-gray-400 branded:text-[var(--muted-foreground)]">
+              This store does not have any active menus at the moment.
             </p>
           </div>
         </div>
@@ -91,52 +105,91 @@ export default function ExampleMenuPage() {
     );
   }
 
-  // Get currency from store settings
-  const currency = store.currency || 'EUR';
-
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 branded:bg-[var(--background)]">
       <Header store={store} currency={currency} />
 
-      {/* Menu Display */}
-      <MenuDisplay
-        storeSlug={STORE_SLUG}
-        storeId={store._id}
-        catalog={selectedCatalog}
-        language={DEFAULT_LANGUAGE}
-        currency={currency}
-      />
-
-      {/* Floating Cart Button (mobile) */}
-      <div className="sm:hidden">
-        <CartButton currency={currency} />
-      </div>
-
-      {/* Cart Drawer */}
-      <CartDrawer currency={currency} />
-
-      {/* Footer */}
-      <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 py-8 mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {getLocalizedText(store.name, DEFAULT_LANGUAGE)}
-            </p>
-            {store.location?.fullAddress && (
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                {store.location.fullAddress}
-              </p>
-            )}
-            {store.contacts?.phone && (
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                {store.contacts.phone}
-              </p>
-            )}
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
-              Powered by MENUOF
-            </p>
+      {store.banner && (
+        <div className="relative h-44 sm:h-64 bg-gray-200 dark:bg-gray-800">
+          <Image
+            src={getImageUrl(store.banner) || store.banner}
+            alt={store.name}
+            fill
+            priority
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-black/30" />
+          <div className="absolute inset-x-0 bottom-0 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-5 text-white">
+            <h1 className="text-3xl font-bold">{store.name}</h1>
+            {store.description && <p className="mt-1 max-w-2xl text-sm text-white/85">{store.description}</p>}
           </div>
+        </div>
+      )}
+
+      {listedCatalogs.length > 1 && (
+        <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 branded:bg-[var(--card)] branded:border-[var(--border)]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 overflow-x-auto scrollbar-hide">
+            <div className="flex gap-2 min-w-max">
+              {listedCatalogs.map((catalog) => {
+                const active = catalog._id === activeCatalogId;
+                return (
+                  <button
+                    key={catalog._id}
+                    onClick={() => setSelectedCatalogId(catalog._id)}
+                    className={`min-h-11 rounded-full px-4 text-sm font-semibold transition ${
+                      active
+                        ? 'bg-primary-600 text-white branded:bg-[var(--brand)] branded:text-[var(--brand-foreground)]'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    {catalog.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedCatalog && (
+        <MenuDisplay
+          key={selectedCatalog._id}
+          storeSlug={STORE_SLUG}
+          storeId={store._id}
+          catalog={selectedCatalog}
+          language={DEFAULT_LANGUAGE}
+          currency={currency}
+          cartEnabled={ordersEnabled}
+        />
+      )}
+
+      {ordersEnabled && (
+        <>
+          <div className="sm:hidden">
+            <CartButton currency={currency} />
+          </div>
+          <CartDrawer currency={currency} />
+        </>
+      )}
+
+      <footer className="bg-white dark:bg-gray-900 branded:bg-[var(--card)] border-t border-gray-200 dark:border-gray-700 branded:border-[var(--border)] py-8 mt-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-sm text-gray-500 dark:text-gray-400 branded:text-[var(--muted-foreground)]">
+            {store.name}
+          </p>
+          {store.location?.fullAddress && (
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+              {store.location.fullAddress}
+            </p>
+          )}
+          {store.contacts?.phone && (
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+              {store.contacts.phone}
+            </p>
+          )}
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
+            Powered by MENUOF
+          </p>
         </div>
       </footer>
     </div>

@@ -8,6 +8,8 @@
  */
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/';
 
+export const API_ORIGIN = API_BASE_URL.replace(/\/$/, '');
+
 /**
  * Store Slug - The unique identifier for your store
  * This is used to fetch store data from the MENUOF API
@@ -84,6 +86,33 @@ export function getImageUrl(imageUrl: string | undefined | null): string | null 
   
   // Relative path - prepend bucket URL
   return `${BUCKET_URL.replace(/\/$/, '')}/${imageUrl}`;
+}
+
+export function getProductImageUrl(
+  image:
+    | string
+    | {
+        small?: string;
+        medium?: string;
+        large?: string;
+        original?: string;
+        thumbnail?: string;
+      }
+    | undefined
+    | null,
+  preferredSize: 'small' | 'medium' | 'large' | 'original' = 'medium'
+): string | null {
+  if (!image) return null;
+  if (typeof image === 'string') return getImageUrl(image);
+
+  return getImageUrl(
+    image[preferredSize] ||
+      image.medium ||
+      image.large ||
+      image.original ||
+      image.small ||
+      image.thumbnail
+  );
 }
 
 /**

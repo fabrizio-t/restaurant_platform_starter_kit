@@ -1,9 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { X, Plus, Minus, AlertTriangle, Check } from 'lucide-react';
-import { getLocalizedText, formatCurrency, getImageUrl, DEFAULT_LANGUAGE } from '@/lib/config';
+import { X, Plus, Minus, Check } from 'lucide-react';
+import { formatCurrency } from '@/lib/config';
 import { useCart } from '@/features/cart/CartProvider';
 import type { Product, Variant, SelectedVariantRequest } from '@/types';
 
@@ -12,6 +11,7 @@ interface ProductModalProps {
   storeId: string;
   language?: string;
   currency?: string;
+  cartEnabled?: boolean;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -19,8 +19,8 @@ interface ProductModalProps {
 export function ProductModal({
   product,
   storeId,
-  language = DEFAULT_LANGUAGE,
   currency = 'EUR',
+  cartEnabled = true,
   isOpen,
   onClose,
 }: ProductModalProps) {
@@ -30,9 +30,7 @@ export function ProductModal({
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string[]>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const productName = getLocalizedText(product.name, language);
-  const productDescription = getLocalizedText(product.description, language);
-  const imageUrl = getImageUrl(product.images?.[0]?.original || product.images?.[0]?.medium);
+  const productName = product.name;
   const hasVariants = product.variants && product.variants.length > 0;
 
   // Reset state when product changes
@@ -56,7 +54,7 @@ export function ProductModal({
             ...prev,
             [variant._id]: current.filter((id) => id !== itemId),
           };
-        } else if (current.length < variant.maxChoice) {
+        } else if (variant.maxChoice === 0 || current.length < variant.maxChoice) {
           return {
             ...prev,
             [variant._id]: [...current, itemId],
@@ -148,7 +146,7 @@ export function ProductModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div className="fixed inset-0 z-50">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/50 transition-opacity"
@@ -156,60 +154,43 @@ export function ProductModal({
       />
 
       {/* Modal */}
-      <div className="flex min-h-full items-end sm:items-center justify-center p-0 sm:p-4">
-        <div className="relative w-full sm:max-w-lg bg-white dark:bg-gray-800 sm:rounded-2xl shadow-xl transform transition-all max-h-[90vh] overflow-hidden">
-          {/* Close button */}
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/80 dark:bg-gray-800/80 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-
-          {/* Image */}
-          {imageUrl && (
-            <div className="relative w-full aspect-video bg-gray-100 dark:bg-gray-700">
-              <Image
-                src={imageUrl}
-                alt={productName}
-                fill
-                className="object-cover"
-              />
-            </div>
-          )}
-
-          {/* Content */}
-          <div className="p-6 overflow-y-auto max-h-[60vh]">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              {productName}
-            </h2>
-
-            {productDescription && (
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                {productDescription}
+      <div className="flex h-full items-end sm:items-center justify-center p-0 sm:p-4">
+        <div className="relative flex w-full max-h-[92vh] sm:max-w-lg flex-col bg-white dark:bg-gray-800 branded:bg-[var(--card)] sm:rounded-2xl shadow-xl transform transition-all overflow-hidden">
+          <div className="flex items-start justify-between gap-4 border-b border-gray-200 dark:border-gray-700 branded:border-[var(--border)] p-5">
+            <div className="min-w-0">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white branded:text-[var(--card-foreground)]">
+                {productName}
+              </h2>
+              <p className="mt-1 text-sm font-semibold text-gray-600 dark:text-gray-300 branded:text-[var(--muted-foreground)]">
+                {hasVariants ? 'Customize your item' : 'Confirm quantity and notes'}
               </p>
-            )}
+            </div>
+            <button
+              onClick={onClose}
+              className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200 transition-colors"
+              aria-label="Close"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
 
-            {/* Allergens */}
-            {product.allergens && product.allergens.length > 0 && (
-              <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg mb-4">
-                <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                    Allergens
-                  </p>
-                  <p className="text-sm text-amber-700 dark:text-amber-300">
-                    {product.allergens.join(', ')}
-                  </p>
-                </div>
+          <div className="flex-1 overflow-y-auto p-5 pb-6">
+            <div className="mb-5 rounded-xl bg-gray-50 dark:bg-gray-900/40 branded:bg-[var(--muted)] p-4">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300 branded:text-[var(--muted-foreground)]">
+                  Base price
+                </span>
+                <span className="text-lg font-bold text-gray-900 dark:text-white branded:text-[var(--foreground)]">
+                  {formatCurrency(product.price, currency)}
+                </span>
               </div>
-            )}
+            </div>
 
             {/* Variants */}
             {hasVariants && (
               <div className="space-y-6 mb-6">
                 {product.variants!.map((variant) => {
-                  const variantName = getLocalizedText(variant.displayName || variant.name, language);
+                  const variantName = variant.displayName || variant.name;
                   const selected = selectedVariants[variant._id] || [];
                   const isRequired = variant.minChoice > 0;
 
@@ -224,14 +205,18 @@ export function ProductModal({
                         </h3>
                         {variant.isMultipleChoice && (
                           <span className="text-xs text-gray-500">
-                            Select {variant.minChoice}-{variant.maxChoice}
+                            {variant.maxChoice > 0
+                              ? `Select ${variant.minChoice}-${variant.maxChoice}`
+                              : variant.minChoice > 0
+                                ? `Select at least ${variant.minChoice}`
+                                : 'Select any'}
                           </span>
                         )}
                       </div>
 
                       <div className="space-y-2">
                         {variant.items.map((item) => {
-                          const itemName = getLocalizedText(item.name, language);
+                          const itemName = item.name;
                           const isSelected = selected.includes(item._id);
 
                           return (
@@ -319,23 +304,32 @@ export function ProductModal({
           </div>
 
           {/* Footer */}
-          <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-            <button
-              onClick={handleAddToCart}
-              disabled={!isValid() || isSubmitting}
-              className={`
-                w-full py-4 rounded-xl font-semibold text-white transition-all
-                flex items-center justify-center gap-2
-                ${
-                  isValid() && !isSubmitting
-                    ? 'bg-primary-600 hover:bg-primary-700'
-                    : 'bg-gray-400 cursor-not-allowed'
-                }
-              `}
-            >
-              <span>Add to cart</span>
-              <span className="font-bold">{formatCurrency(calculateTotal(), currency)}</span>
-            </button>
+          <div className="flex-shrink-0 p-5 border-t border-gray-200 dark:border-gray-700 branded:border-[var(--border)] bg-gray-50 dark:bg-gray-800/50 branded:bg-[var(--card)] shadow-[0_-8px_24px_rgba(0,0,0,0.08)]">
+            {cartEnabled ? (
+              <button
+                onClick={handleAddToCart}
+                disabled={!isValid() || isSubmitting}
+                className={`
+                  w-full min-h-12 py-3 rounded-xl font-semibold text-white transition-all
+                  flex items-center justify-center gap-2
+                  ${
+                    isValid() && !isSubmitting
+                      ? 'bg-primary-600 hover:bg-primary-700 branded:bg-[var(--brand)] branded:text-[var(--brand-foreground)]'
+                      : 'bg-gray-400 cursor-not-allowed'
+                  }
+                `}
+              >
+                <span>Add to cart</span>
+                <span className="font-bold">{formatCurrency(calculateTotal(), currency)}</span>
+              </button>
+            ) : (
+              <button
+                onClick={onClose}
+                className="w-full py-4 rounded-xl font-semibold bg-gray-900 text-white dark:bg-white dark:text-gray-900"
+              >
+                Close
+              </button>
+            )}
           </div>
         </div>
       </div>
