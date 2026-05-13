@@ -90,7 +90,7 @@ export function MenuDisplay({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 branded:bg-[var(--background)]">
+    <div className="min-h-screen bg-[var(--background)] branded:bg-[var(--background)]">
       <CategoryNav
         categories={categories}
         selectedCategoryId={isGlobalSearch ? undefined : selectedCategoryId}
@@ -101,12 +101,15 @@ export function MenuDisplay({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white branded:text-[var(--foreground)]">
-              {isGlobalSearch ? 'Search results' : selectedCategoryName || catalog.name}
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.24em] text-primary-300">
+              Menu online
+            </p>
+            <h2 className="text-2xl font-bold text-white branded:text-[var(--foreground)]">
+              {isGlobalSearch ? 'Risultati ricerca' : selectedCategoryName || catalog.name}
             </h2>
             {meta?.totalItems !== undefined && (
-              <p className="text-sm text-gray-500 dark:text-gray-400 branded:text-[var(--muted-foreground)] mt-1">
-                {meta.totalItems} items
+              <p className="text-sm text-white/50 branded:text-[var(--muted-foreground)] mt-1">
+                {meta.totalItems} prodotti
               </p>
             )}
           </div>
@@ -119,8 +122,8 @@ export function MenuDisplay({
                 setSearchInput(event.target.value);
                 setPage(1);
               }}
-              placeholder="Search products"
-              className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-3 pl-10 pr-10 text-sm text-gray-900 dark:text-white outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 branded:bg-[var(--card)] branded:text-[var(--card-foreground)] branded:border-[var(--border)]"
+              placeholder="Cerca nel menu"
+              className="w-full border border-white/12 bg-white/[0.04] py-3 pl-10 pr-10 text-sm text-white outline-none transition placeholder:text-white/40 focus:border-primary-400 focus:ring-2 focus:ring-primary-500/20 branded:bg-[var(--card)] branded:text-[var(--card-foreground)] branded:border-[var(--border)]"
             />
             {searchInput && (
               <button
@@ -129,7 +132,7 @@ export function MenuDisplay({
                   setSearchInput('');
                   setPage(1);
                 }}
-                className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center text-white/55 hover:bg-white/10"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -142,7 +145,7 @@ export function MenuDisplay({
             {Array.from({ length: 8 }).map((_, index) => (
               <div
                 key={index}
-                className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden animate-pulse branded:bg-[var(--card)]"
+                className="overflow-hidden bg-[#15110b] animate-pulse branded:bg-[var(--card)]"
               >
                 <div className="aspect-[4/3] bg-gray-200 dark:bg-gray-700" />
                 <div className="p-4 space-y-3">
@@ -177,19 +180,19 @@ export function MenuDisplay({
                 <button
                   disabled={!meta.hasPreviousPage}
                   onClick={() => setPage((current) => Math.max(1, current - 1))}
-                  className="min-h-11 rounded-lg border border-gray-200 px-4 text-sm font-medium text-gray-700 disabled:opacity-40 dark:border-gray-700 dark:text-gray-200"
+                  className="min-h-11 border border-white/15 px-4 text-sm font-medium text-white disabled:opacity-40"
                 >
-                  Previous
+                  Precedente
                 </button>
-                <span className="text-sm text-gray-500 dark:text-gray-400">
-                  Page {meta.currentPage} of {meta.totalPages}
+                <span className="text-sm text-white/55">
+                  Pagina {meta.currentPage} di {meta.totalPages}
                 </span>
                 <button
                   disabled={!meta.hasNextPage}
                   onClick={() => setPage((current) => current + 1)}
-                  className="min-h-11 rounded-lg border border-gray-200 px-4 text-sm font-medium text-gray-700 disabled:opacity-40 dark:border-gray-700 dark:text-gray-200"
+                  className="min-h-11 border border-white/15 px-4 text-sm font-medium text-white disabled:opacity-40"
                 >
-                  Next
+                  Successiva
                 </button>
               </div>
             )}
@@ -198,11 +201,11 @@ export function MenuDisplay({
 
         {!isLoadingProducts && !isFetching && products.length === 0 && (selectedCategoryId || isGlobalSearch) && (
           <div className="text-center py-12">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white branded:text-[var(--foreground)] mb-2">
-              No products found
+            <h3 className="text-lg font-medium text-white branded:text-[var(--foreground)] mb-2">
+              Nessun prodotto trovato
             </h3>
-            <p className="text-gray-500 dark:text-gray-400 branded:text-[var(--muted-foreground)]">
-              Try selecting a different category or search term.
+            <p className="text-white/55 branded:text-[var(--muted-foreground)]">
+              Prova una categoria diversa o un altro termine di ricerca.
             </p>
           </div>
         )}

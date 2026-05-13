@@ -34,7 +34,7 @@ export function CategoryNav({
   }
 
   return (
-    <nav className="sticky top-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+    <nav className="sticky top-16 z-30 border-b border-primary-300/20 bg-[#0d0a06]/95 backdrop-blur">
       <div className="overflow-x-auto scrollbar-hide">
         <div className="flex gap-2 p-4 min-w-max">
           {flatCategories.map((category) => {
@@ -46,18 +46,18 @@ export function CategoryNav({
                 key={category._id}
                 onClick={() => onCategorySelect(category._id)}
                 className={`
-                  px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap
+                  px-4 py-2 text-sm font-medium whitespace-nowrap
                   transition-all duration-200
                   ${category.depth > 0 ? 'ml-2' : ''}
                   ${
                     isSelected
-                      ? 'bg-primary-600 text-white shadow-md branded:bg-[var(--brand)] branded:text-[var(--brand-foreground)]'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                      ? 'bg-primary-400 text-black shadow-md branded:bg-[var(--brand)] branded:text-[var(--brand-foreground)]'
+                      : 'border border-white/10 bg-white/[0.04] text-white/72 hover:border-primary-300/40 hover:text-white'
                   }
                 `}
               >
                 {category.depth > 0 && (
-                  <span className="text-gray-400 mr-1">-</span>
+                  <span className="text-primary-300 mr-1">-</span>
                 )}
                 {categoryName}
                 {category.productCount !== undefined && category.productCount > 0 && (

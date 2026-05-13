@@ -12,12 +12,12 @@ type LocalTheme = 'light' | 'dark';
  * values, so production projects can configure everything from the host.
  */
 export const LOCAL_CONFIG = {
-  apiBaseUrl: 'https://api.ordina.online/',
-  storeSlug: 'pizzaplace',
-  menuofPlatformUrl: 'https://ordina.online',
+  apiBaseUrl: 'https://menuof-3-0-backend.fly.dev/',
+  storeSlug: 'raffaeledistasio',
+  menuofPlatformUrl: 'https://raffaeledistasio.sigital.io',
   bucketUrl: 'https://3d1da5272d71dd829c0b3d13a993b10a.eu.r2.cloudflarestorage.com',
   defaultLanguage: 'it',
-  localTheme: 'light' as LocalTheme,
+  localTheme: 'dark' as LocalTheme,
 };
 
 function envOrLocal(value: string | undefined, localValue: string): string {

@@ -43,16 +43,16 @@ export function ProductCard({
   return (
     <div
       className={`
-        bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 branded:bg-[var(--card)] branded:border-[var(--border)]
+        bg-[#15110b] shadow-sm border border-primary-300/18 branded:bg-[var(--card)] branded:border-[var(--border)]
         overflow-hidden transition-all duration-200
-        hover:shadow-md hover:border-primary-300 dark:hover:border-primary-600
+        hover:shadow-md hover:border-primary-300/55
       `}
     >
       {/* Image */}
       <button
         type="button"
         onClick={() => onImageClick?.(product)}
-        className="relative block w-full aspect-[4/3] bg-gray-100 dark:bg-gray-700 overflow-hidden text-left"
+        className="relative block w-full aspect-[4/3] bg-[#211a10] overflow-hidden text-left"
         aria-label={`View details for ${productName}`}
       >
         {imageUrl ? (
@@ -60,7 +60,7 @@ export function ProductCard({
             src={imageUrl}
             alt={productName}
             fill
-            className="object-cover transition-transform duration-300 hover:scale-105"
+            className="object-cover transition-transform duration-500 hover:scale-105"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
         ) : (
@@ -73,8 +73,8 @@ export function ProductCard({
         
         {/* Quantity badge */}
         {quantityInCart > 0 && (
-          <div className="absolute top-2 right-2 bg-primary-600 text-white text-xs font-bold px-2 py-1 rounded-full">
-            {quantityInCart} in cart
+          <div className="absolute top-2 right-2 bg-primary-400 text-black text-xs font-bold px-2 py-1">
+            {quantityInCart} nel carrello
           </div>
         )}
         {product.images && product.images.length > 1 && (
@@ -87,12 +87,12 @@ export function ProductCard({
 
       {/* Content */}
       <div className="p-4">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-1 line-clamp-2">
+        <h3 className="font-semibold text-white mb-1 line-clamp-2">
           {productName}
         </h3>
         
         {productDescription && (
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+          <p className="text-sm text-white/58 mb-3 line-clamp-2">
             {productDescription}
           </p>
         )}
@@ -103,17 +103,17 @@ export function ProductCard({
 
         {/* Price and Add button */}
         <div className="flex items-center justify-between">
-          <span className="text-lg font-bold text-gray-900 dark:text-white">
-            {hasVariants ? `from ${formatCurrency(product.price, currency)}` : formatCurrency(product.price, currency)}
+          <span className="text-lg font-bold text-primary-200">
+            {hasVariants ? `da ${formatCurrency(product.price, currency, 'it-IT')}` : formatCurrency(product.price, currency, 'it-IT')}
           </span>
           
           {cartEnabled && (
             <button
               onClick={handleAddToCart}
-              className="flex items-center gap-1.5 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors branded:bg-[var(--brand)] branded:text-[var(--brand-foreground)]"
+              className="flex items-center gap-1.5 bg-primary-400 px-4 py-2 text-sm font-bold text-black transition-colors hover:bg-primary-300 branded:bg-[var(--brand)] branded:text-[var(--brand-foreground)]"
             >
               <Plus className="w-4 h-4" />
-              {hasVariants ? 'Choose' : 'Add'}
+              {hasVariants ? 'Scegli' : 'Aggiungi'}
             </button>
           )}
         </div>
